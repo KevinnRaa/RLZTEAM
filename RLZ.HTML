@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RLZ TEAM - ACCESS REQUIRED</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        body { font-family: 'Share Tech Mono', monospace; background-color: #0a0a0a; color: #00ff41; }
+        h1, h2, h3, .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        html { scroll-behavior: smooth; }
+        .glow { text-shadow: 0 0 5px #00ff41, 0 0 10px #00ff41, 0 0 20px #00ff41; }
+        .card-glow { box-shadow: 0 0 15px rgba(0, 255, 65, 0.4); transition: all 0.3s ease; }
+        .card-glow:hover { box-shadow: 0 0 25px rgba(0, 255, 65, 0.7); transform: translateY(-5px); }
+        .blinking-cursor { animation: blink 1s step-end infinite; }
+        @keyframes blink { from, to { color: transparent } 50% { color: #00ff41; } }
+        .access-input, .form-input { background-color: #111; border: 1px solid #00ff41; color: #00ff41; caret-color: #00ff41; }
+        .access-input::placeholder, .form-input::placeholder { color: #00ff41; opacity: 0.5; }
+        .access-input:focus, .form-input:focus { outline: none; box-shadow: 0 0 15px rgba(0, 255, 65, 0.7); }
+        .modal-overlay { background-color: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); }
+        .modal-content { background-color: #0a0a0a; border: 1px solid #00ff41; }
+        .category-btn.active { background-color: #00ff41; color: #0a0a0a; box-shadow: 0 0 15px #00ff41; }
+        .wishlist-btn.active { color: #ff0055; text-shadow: 0 0 10px #ff0055; }
+        .chat-widget { transition: all 0.3s ease; }
+    </style>
+</head>
+<body class="bg-black">
+
+    <!-- Access Gate Section -->
+    <div id="login-gate" class="min-h-screen flex flex-col items-center justify-center text-center p-4">
+        <i class="fas fa-shield-halved text-8xl text-green-400 glow mb-6"></i>
+        <h1 class="text-5xl md:text-7xl font-orbitron text-white glow">RLZ TEAM</h1>
+        <p class="mt-4 text-lg text-green-400">>> PLEASE ENTER YOUR ACCESS KEY TO PROCEED<span class="blinking-cursor">_</span></p>
+        <div class="mt-8 flex flex-col sm:flex-row gap-2">
+            <input type="password" id="access-key-input" class="access-input font-mono-tech text-center text-lg px-4 py-2 rounded-sm w-full sm:w-80" placeholder="************">
+            <button id="submit-key-btn" class="bg-green-500 text-black font-bold py-2 px-8 rounded-sm hover:bg-green-400 transition duration-300">ENTER</button>
+        </div>
+        <p id="error-message" class="mt-4 text-red-500 font-bold h-6"></p>
+    </div>
+
+    <!-- Main Content (Hidden by default) -->
+    <div id="main-content" class="hidden">
+        <!-- Header & Navigation -->
+        <header class="bg-black/80 backdrop-blur-sm sticky top-0 z-50 border-b border-green-500/30">
+            <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+                <a href="#" class="text-3xl font-orbitron text-green-400 glow tracking-wider">RLZ TEAM</a>
+                <div class="hidden md:flex items-center space-x-8 font-mono-tech">
+                    <a href="#categories" class="hover:text-white hover:glow transition duration-300">Categories</a>
+                    <a href="#products" class="hover:text-white hover:glow transition duration-300">Products</a>
+                    <a href="#blog" class="hover:text-white hover:glow transition duration-300">Blog</a>
+                    <a href="#admin-dashboard" id="admin-link" class="text-red-500 hover:text-red-400 hidden">Admin Panel</a>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div id="wishlist-btn" class="relative cursor-pointer"><i class="fas fa-heart text-2xl text-green-400 hover:text-white"></i></div>
+                    <div id="cart-btn" class="relative cursor-pointer">
+                        <i class="fas fa-shopping-cart text-2xl text-green-400 hover:text-white"></i>
+                        <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+                    </div>
+                    <div id="user-actions" class="relative">
+                        <button id="auth-btn" class="bg-green-600/50 border border-green-500 text-white px-3 py-1 rounded-sm text-sm hover:bg-green-500">Login</button>
+                        <div id="user-profile" class="hidden items-center gap-2">
+                            <span id="username-display" class="text-white"></span>
+                            <button id="logout-btn"><i class="fas fa-sign-out-alt text-red-500 text-xl"></i></button>
+                        </div>
+                    </div>
+                    <div class="md:hidden"><button id="menu-btn" class="text-green-400 focus:outline-none text-2xl"><i class="fas fa-bars"></i></button></div>
+                </div>
+            </nav>
+            <div id="mobile-menu" class="hidden md:hidden font-mono-tech"><a href="#products" class="block text-center py-2 px-4 text-sm hover:bg-gray-800">Products</a></div>
+        </header>
+
+        <!-- Main Content Sections -->
+        <main>
+            <section id="terminal" class="bg-gray-900/50"><div class="container mx-auto px-6 py-8"><div class="bg-black border border-green-500/30 rounded-md p-4 h-48 overflow-y-auto"><div id="terminal-output"></div><div class="flex items-center"><span class="text-green-400">root@rlz-team:~$</span><span id="terminal-cursor" class="blinking-cursor ml-2">_</span></div></div></div></section>
+            <section id="categories" class="py-12 bg-black"><div class="container mx-auto px-6"><h2 class="text-5xl font-orbitron text-center mb-12 text-green-400 glow">PRODUCT CATEGORIES</h2><div id="category-filters" class="flex flex-wrap justify-center gap-4 mb-12"></div></div></section>
+            <section id="products" class="py-12 bg-gray-900/50"><div class="container mx-auto px-6"><div class="flex justify-center mb-12"><div class="relative w-full max-w-lg"><input type="text" id="search-bar" class="access-input w-full py-2 px-4 rounded-sm" placeholder="Search for products..."><i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-green-500/50"></i></div></div><div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"></div><p id="no-results" class="text-center text-red-500 text-xl hidden">>> NO PRODUCTS FOUND</p></div></section>
+            <section id="blog" class="py-20 bg-black"><div class="container mx-auto px-6"><h2 class="text-5xl font-orbitron text-center mb-12 text-green-400 glow">SECURITY BRIEFING</h2><div class="grid grid-cols-1 md:grid-cols-3 gap-8"><div class="card-glow bg-black border border-green-500/30 rounded-md p-6"><h3 class="font-orbitron text-xl text-white mb-2">Understanding Phishing</h3><p class="text-gray-400 text-sm mb-4">Learn to identify and protect yourself from sophisticated phishing attacks...</p><a href="#" class="text-green-400 hover:underline">Read More >></a></div><div class="card-glow bg-black border border-green-500/30 rounded-md p-6"><h3 class="font-orbitron text-xl text-white mb-2">Top 5 Pentesting Tools</h3><p class="text-gray-400 text-sm mb-4">A breakdown of the must-have tools for any aspiring ethical hacker...</p><a href="#" class="text-green-400 hover:underline">Read More >></a></div><div class="card-glow bg-black border border-green-500/30 rounded-md p-6"><h3 class="font-orbitron text-xl text-white mb-2">Securing Your Home Network</h3><p class="text-gray-400 text-sm mb-4">Simple steps you can take today to dramatically improve your Wi-Fi security...</p><a href="#" class="text-green-400 hover:underline">Read More >></a></div></div></div></section>
+            <section id="admin-dashboard" class="hidden py-20 bg-red-900/20"><div class="container mx-auto px-6"><h2 class="text-5xl font-orbitron text-center mb-12 text-red-500 glow">ADMIN DASHBOARD</h2><div class="bg-black border border-red-500/30 p-6 rounded-md"><h3 class="font-orbitron text-2xl text-white mb-4">Add/Edit Product</h3><form id="product-form" class="grid grid-cols-1 md:grid-cols-2 gap-4"><input type="hidden" id="product-id"><input type="text" id="product-name" class="form-input" placeholder="Product Name" required><input type="number" id="product-price" class="form-input" placeholder="Price" step="0.01" required><input type="text" id="product-img" class="form-input" placeholder="Image URL" required><input type="number" id="product-stock" class="form-input" placeholder="Stock" required><select id="product-category" class="form-input" required></select><textarea id="product-desc" class="form-input md:col-span-2" placeholder="Description" required></textarea><button type="submit" class="md:col-span-2 bg-red-500 text-white font-bold py-2 rounded-sm hover:bg-red-600">SAVE PRODUCT</button></form></div><div id="admin-product-list" class="mt-8"></div></div></section>
+        </main>
+        <footer class="bg-gray-900/50 py-6 border-t border-green-500/30"><div class="container mx-auto px-6 text-center text-gray-500"><p>&copy; 2025 RLZ TEAM. All Rights Reserved.</p><p>INITIATED WITH <span class="text-green-400">&lt;3</span> BY JING JING FOR BONG KHEMRA.</p></div></footer>
+    </div>
+    
+    <!-- MODALS -->
+    <div id="product-modal" class="fixed inset-0 modal-overlay items-center justify-center p-4 hidden z-50"><div class="modal-content max-w-4xl w-full rounded-md shadow-lg p-6 relative"><button id="close-product-modal-btn" class="absolute top-2 right-4 text-gray-500 hover:text-white text-3xl">&times;</button><div class="flex flex-col md:flex-row gap-6"><div class="md:w-1/2"><img id="modal-img" src="" alt="Product Image" class="w-full rounded-md border border-green-500/30"></div><div class="md:w-1/2 flex flex-col"><h2 id="modal-name" class="text-3xl font-orbitron text-white glow">Product Name</h2><p id="modal-price" class="text-2xl text-green-400 my-2">$0.00</p><p id="modal-desc" class="text-gray-400 text-sm leading-relaxed flex-grow">Desc.</p><button id="modal-add-to-cart-btn" class="mt-4 w-full bg-green-500 text-black font-bold py-2 rounded-sm hover:bg-green-400 transition disabled:bg-gray-500 disabled:cursor-not-allowed">ADD TO CART</button></div></div><div id="reviews-section" class="mt-6 border-t border-green-500/30 pt-4"><h3 class="font-orbitron text-xl text-white mb-4">Reviews</h3><div id="reviews-list" class="max-h-40 overflow-y-auto pr-2"></div><form id="review-form" class="mt-4 hidden"><textarea id="review-text" class="form-input w-full" placeholder="Write a review..."></textarea><button type="submit" class="mt-2 bg-green-700 text-white px-4 py-1 rounded-sm">Submit</button></form></div></div></div>
+    <div id="cart-modal" class="fixed inset-0 modal-overlay items-center justify-center p-4 hidden z-50"><div class="modal-content max-w-lg w-full rounded-md shadow-lg p-6 relative flex flex-col h-2/3"><button id="close-cart-btn" class="absolute top-2 right-4 text-gray-500 hover:text-white text-3xl">&times;</button><h2 class="text-3xl font-orbitron text-white glow mb-4">Shopping Cart</h2><div id="cart-items" class="flex-grow overflow-y-auto pr-2"></div><div class="border-t border-green-500/30 pt-4 mt-4"><div class="flex justify-between items-center text-xl"><span class="font-bold text-white">Total:</span><span id="cart-total" class="font-bold text-green-400">$0.00</span></div><button id="checkout-btn" class="mt-4 w-full bg-green-500 text-black font-bold py-2 rounded-sm hover:bg-green-400 transition">PROCEED TO CHECKOUT</button></div></div></div>
+    <div id="wishlist-modal" class="fixed inset-0 modal-overlay items-center justify-center p-4 hidden z-50"><div class="modal-content max-w-2xl w-full rounded-md shadow-lg p-6 relative flex flex-col h-2/3"><button id="close-wishlist-btn" class="absolute top-2 right-4 text-gray-500 hover:text-white text-3xl">&times;</button><h2 class="text-3xl font-orbitron text-white glow mb-4">My Wishlist</h2><div id="wishlist-items" class="flex-grow overflow-y-auto pr-2"></div></div></div>
+    <div id="auth-modal" class="fixed inset-0 modal-overlay items-center justify-center p-4 hidden z-50"><div class="modal-content max-w-sm w-full rounded-md shadow-lg p-6 relative"><button id="close-auth-btn" class="absolute top-2 right-4 text-gray-500 hover:text-white text-3xl">&times;</button><div id="auth-content"></div></div></div>
+    <div id="payment-modal" class="fixed inset-0 modal-overlay items-center justify-center p-4 hidden z-50"><div class="modal-content max-w-md w-full rounded-md shadow-lg p-6 relative text-center"><button id="close-payment-btn" class="absolute top-2 right-4 text-gray-500 hover:text-white text-3xl">&times;</button><h2 class="text-3xl font-orbitron text-white glow mb-4">Scan to Pay</h2><img id="qr-code-img" src="" alt="QR Code" class="w-64 h-64 mx-auto my-4 border-4 border-green-500"><p class="text-xl text-white">Total Amount: <span id="payment-amount" class="text-green-400 font-bold"></span></p><p class="text-sm text-gray-400 mt-4">Scan the QR code with your payment app to complete the purchase.</p></div></div>
+    
+    <!-- Live Chat Widget -->
+    <div id="chat-widget" class="fixed bottom-4 right-4"><button id="chat-toggle" class="bg-green-500 rounded-full h-16 w-16 flex items-center justify-center shadow-lg glow"><i class="fas fa-comments text-3xl text-black"></i></button><div id="chat-window" class="hidden absolute bottom-20 right-0 w-80 h-96 bg-black border border-green-500 rounded-md flex-col"><div class="p-2 border-b border-green-500/30 text-center text-white font-bold">RLZ Support</div><div class="flex-grow p-2"></div><input type="text" class="form-input m-2" placeholder="Type a message..."></div></div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- CONFIGURATION & DATA ---
+        const SECRET_KEY = 'KEVIN-RLZ-007';
+        const ADMIN_USER = 'admin';
+        let products = JSON.parse(localStorage.getItem('rlz_products')) || [
+            { id: 1, name: "WiFi Pineapple VII", price: 99.99, img: "https://placehold.co/600x400/0a0a0a/00ff41?text=WiFi+Pineapple", category: "Network", rating: 5, stock: 10, desc: "The 7th generation WiFi Pineapple.", reviews: [{user:'admin', text:'Powerful tool!'}] },
+            { id: 2, name: "USB Rubber Ducky", price: 49.99, img: "https://placehold.co/600x400/0a0a0a/00ff41?text=USB+Rubber+Ducky", category: "Hardware", rating: 5, stock: 15, desc: "A keystroke injection tool.", reviews: [] },
+            { id: 3, name: "Proxmark 3 RDV4", price: 320.00, img: "https://placehold.co/600x400/0a0a0a/00ff41?text=Proxmark+3", category: "RFID/NFC", rating: 5, stock: 5, desc: "The swiss-army-tool for RFID research.", reviews: [] },
+            { id: 4, name: "Flipper Zero", price: 169.00, img: "https://placehold.co/600x400/0a0a0a/00ff41?text=Flipper+Zero", category: "Hardware", rating: 5, stock: 0, desc: "A portable multi-tool for pentesters.", reviews: [] },
+            { id: 5, name: "Hacker Hoodie", price: 45.00, img: "https://placehold.co/600x400/0a0a0a/00ff41?text=Hacker+Hoodie", category: "Apparel", rating: 5, stock: 50, desc: "Stay anonymous and comfortable.", reviews: [] },
+            { id: 6, name: "Burp Suite Pro", price: 449.00, img: "https://placehold.co/600x400/0a0a0a/00ff41?text=Burp+Suite", category: "Software", rating: 5, stock: 100, desc: "The essential toolkit for web security testers.", reviews: [] },
+        ];
+        let users = JSON.parse(localStorage.getItem('rlz_users')) || { 'admin': { password: 'admin', wishlist: [], orders: [] }};
+        let currentUser = null;
+        let cart = [];
+
+        // --- GLOBAL SAVE FUNCTIONS ---
+        const saveUsers = () => localStorage.setItem('rlz_users', JSON.stringify(users));
+        const saveProducts = () => localStorage.setItem('rlz_products', JSON.stringify(products));
+
+        // --- ELEMENT SELECTORS ---
+        const mainContent = document.getElementById('main-content');
+        const productGrid = document.getElementById('product-grid');
+        const categoryFilters = document.getElementById('category-filters');
+
+        // --- INITIALIZATION ---
+        function init() {
+            setupEventListeners();
+            renderCategories();
+            renderProducts(products);
+            updateHeaderUI();
+            renderAdminProductList();
+        }
+
+        // --- SECURITY GATE ---
+        function setupGate() {
+            const loginGate = document.getElementById('login-gate');
+            const keyInput = document.getElementById('access-key-input');
+            const submitBtn = document.getElementById('submit-key-btn');
+            const errorMsg = document.getElementById('error-message');
+
+            const grantAccess = () => {
+                loginGate.style.display = 'none';
+                mainContent.classList.remove('hidden');
+                runTerminal();
+                init();
+            };
+            const denyAccess = () => errorMsg.textContent = '>> ACCESS DENIED: INVALID KEY';
+            
+            submitBtn.addEventListener('click', () => keyInput.value === SECRET_KEY ? grantAccess() : denyAccess());
+            keyInput.addEventListener('keypress', (e) => e.key === 'Enter' && submitBtn.click());
+        }
+        setupGate();
+
+        // --- TERMINAL ---
+        function runTerminal() {
+            const terminalOutput = document.getElementById('terminal-output');
+            const lines = ['Booting RLZ-OS v5.0...', 'Connecting to secure server...', 'Authenticating user... Access Granted.', 'Welcome, Agent. All systems operational.'];
+            let i = 0;
+            const type = () => {
+                if (i < lines.length) {
+                    terminalOutput.innerHTML += `<p>&gt;&gt; ${lines[i]}</p>`;
+                    terminalOutput.scrollTop = terminalOutput.scrollHeight;
+                    i++;
+                    setTimeout(type, Math.random() * 200 + 50);
+                }
+            };
+            type();
+        }
+
+        // --- UI & RENDERING ---
+        function renderProducts(filteredProducts) {
+            productGrid.innerHTML = '';
+            document.getElementById('no-results').classList.toggle('hidden', filteredProducts.length > 0);
+            filteredProducts.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'card-glow bg-black border border-green-500/30 rounded-md overflow-hidden flex flex-col product-card';
+                const isWishlisted = currentUser && users[currentUser]?.wishlist.includes(p.id);
+                card.innerHTML = `
+                    <div class="relative">
+                        <img src="${p.img}" alt="${p.name}" class="w-full h-48 object-cover">
+                        <button class="wishlist-btn absolute top-2 right-2 text-2xl ${isWishlisted ? 'active' : ''}" data-product-id="${p.id}"><i class="fas fa-heart"></i></button>
+                    </div>
+                    <div class="p-4 flex flex-col flex-grow">
+                        <h3 class="text-xl font-orbitron text-white">${p.name}</h3>
+                        <p class="font-mono-tech text-green-400 text-lg my-2">${'$' + p.price.toFixed(2)}</p>
+                        <p class="text-sm ${p.stock > 0 ? 'text-gray-400' : 'text-red-500'}">${p.stock > 0 ? `Stock: ${p.stock}` : 'OUT OF STOCK'}</p>
+                        <button class="view-details-btn mt-auto w-full border border-green-500 text-green-500 font-bold py-2 rounded-sm hover:bg-green-500 hover:text-black transition" data-product-id="${p.id}">View Details</button>
+                    </div>`;
+                productGrid.appendChild(card);
+            });
+        }
+        
+        function renderCategories() {
+            const categories = ['All', ...new Set(products.map(p => p.category))];
+            categoryFilters.innerHTML = categories.map(c => `<button class="category-btn border border-green-500 text-green-500 px-4 py-2 rounded-sm hover:bg-green-500 hover:text-black transition ${c === 'All' ? 'active' : ''}" data-category="${c}">${c}</button>`).join('');
+            document.getElementById('product-category').innerHTML = categories.filter(c => c !== 'All').map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+        
+        function updateHeaderUI() {
+            const authBtn = document.getElementById('auth-btn');
+            const userProfile = document.getElementById('user-profile');
+            const usernameDisplay = document.getElementById('username-display');
+            const adminLink = document.getElementById('admin-link');
+            const adminDashboard = document.getElementById('admin-dashboard');
+            if (currentUser) {
+                authBtn.classList.add('hidden');
+                userProfile.classList.remove('hidden');
+                userProfile.classList.add('flex');
+                usernameDisplay.textContent = currentUser;
+                const isAdmin = currentUser === ADMIN_USER;
+                adminLink.classList.toggle('hidden', !isAdmin);
+                adminDashboard.classList.toggle('hidden', !isAdmin);
+            } else {
+                authBtn.classList.remove('hidden');
+                userProfile.classList.add('hidden');
+                adminLink.classList.add('hidden');
+                adminDashboard.classList.add('hidden');
+            }
+        }
+
+        // --- EVENT LISTENERS & HANDLERS ---
+        function setupEventListeners() {
+            document.getElementById('search-bar').addEventListener('input', handleFilterChange);
+            categoryFilters.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') {
+                    document.querySelector('.category-btn.active').classList.remove('active');
+                    e.target.classList.add('active');
+                    handleFilterChange();
+                }
+            });
+            document.getElementById('auth-btn').addEventListener('click', () => showAuthModal());
+            document.getElementById('logout-btn').addEventListener('click', logout);
+            productGrid.addEventListener('click', (e) => {
+                const viewBtn = e.target.closest('.view-details-btn');
+                const wishBtn = e.target.closest('.wishlist-btn');
+                if (viewBtn) openProductModal(viewBtn.dataset.productId);
+                if (wishBtn) toggleWishlist(wishBtn.dataset.productId);
+            });
+            document.getElementById('cart-btn').addEventListener('click', () => document.getElementById('cart-modal').classList.remove('hidden'));
+            document.getElementById('close-cart-btn').addEventListener('click', () => document.getElementById('cart-modal').classList.add('hidden'));
+            document.getElementById('checkout-btn').addEventListener('click', handleCheckout);
+            document.getElementById('wishlist-btn').addEventListener('click', renderWishlistModal);
+            document.getElementById('close-wishlist-btn').addEventListener('click', () => document.getElementById('wishlist-modal').classList.add('hidden'));
+            document.getElementById('chat-toggle').addEventListener('click', () => document.getElementById('chat-window').classList.toggle('hidden'));
+            document.getElementById('product-form').addEventListener('submit', handleProductFormSubmit);
+        }
+        
+        function handleFilterChange() {
+            const activeCategory = document.querySelector('.category-btn.active').dataset.category;
+            const searchTerm = document.getElementById('search-bar').value.toLowerCase();
+            const filtered = products.filter(p => 
+                (activeCategory === 'All' || p.category === activeCategory) &&
+                (p.name.toLowerCase().includes(searchTerm))
+            );
+            renderProducts(filtered);
+        }
+
+        // --- AUTHENTICATION ---
+        function showAuthModal(isLogin = true) {
+            const content = document.getElementById('auth-content');
+            content.innerHTML = `<h2 class="text-2xl font-orbitron text-white glow mb-4">${isLogin ? 'Login' : 'Register'}</h2><form id="auth-form" class="flex flex-col gap-4"><input type="text" id="auth-username" class="form-input" placeholder="Username" required><input type="password" id="auth-password" class="form-input" placeholder="Password" required><button type="submit" class="bg-green-500 text-black font-bold py-2">${isLogin ? 'LOGIN' : 'REGISTER'}</button></form><p class="text-center text-sm mt-4">${isLogin ? "Don't have an account?" : "Already have an account?"} <button id="auth-switch" class="text-green-400 hover:underline">${isLogin ? 'Register' : 'Login'}</button></p>`;
+            const authModal = document.getElementById('auth-modal');
+            authModal.classList.remove('hidden');
+            document.getElementById('close-auth-btn').onclick = () => authModal.classList.add('hidden');
+            document.getElementById('auth-switch').onclick = () => showAuthModal(!isLogin);
+            document.getElementById('auth-form').onsubmit = (e) => {
+                e.preventDefault();
+                const user = document.getElementById('auth-username').value;
+                const pass = document.getElementById('auth-password').value;
+                isLogin ? login(user, pass) : register(user, pass);
+            };
+        }
+        function login(username, password) {
+            if (users[username] && users[username].password === password) {
+                currentUser = username;
+                document.getElementById('auth-modal').classList.add('hidden');
+                updateHeaderUI();
+                handleFilterChange();
+            } else { alert('Invalid credentials'); }
+        }
+        function register(username, password) {
+            if (users[username]) { alert('Username already exists'); } 
+            else {
+                users[username] = { password, wishlist: [], orders: [] };
+                saveUsers();
+                login(username, password);
+            }
+        }
+        function logout() {
+            currentUser = null;
+            updateHeaderUI();
+            handleFilterChange();
+        }
+
+        // --- PRODUCT MODAL & REVIEWS ---
+        function openProductModal(productId) {
+            const product = products.find(p => p.id == productId);
+            if (!product) return;
+            const modal = document.getElementById('product-modal');
+            document.getElementById('modal-name').textContent = product.name;
+            document.getElementById('modal-price').textContent = '$' + product.price.toFixed(2);
+            document.getElementById('modal-desc').textContent = product.desc;
+            document.getElementById('modal-img').src = product.img;
+            const addToCartBtn = document.getElementById('modal-add-to-cart-btn');
+            addToCartBtn.dataset.productId = product.id;
+            addToCartBtn.disabled = product.stock === 0;
+            addToCartBtn.textContent = product.stock > 0 ? 'ADD TO CART' : 'OUT OF STOCK';
+
+            const reviewForm = document.getElementById('review-form');
+            reviewForm.classList.toggle('hidden', !currentUser);
+            reviewForm.dataset.productId = productId;
+            renderReviews(product);
+            modal.classList.remove('hidden');
+            document.getElementById('close-product-modal-btn').onclick = () => modal.classList.add('hidden');
+        }
+        function renderReviews(product) {
+            const list = document.getElementById('reviews-list');
+            list.innerHTML = product.reviews.length ? product.reviews.map(r => `<div class="border-b border-green-500/20 pb-2 mb-2"><p class="text-white">${r.text}</p><p class="text-xs text-gray-500">- ${r.user}</p></div>`).join('') : '<p class="text-gray-500">No reviews yet.</p>';
+        }
+        document.getElementById('review-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!currentUser) return;
+            const productId = e.target.dataset.productId;
+            const product = products.find(p => p.id == productId);
+            const reviewText = document.getElementById('review-text');
+            if (product && reviewText.value) {
+                product.reviews.unshift({ user: currentUser, text: reviewText.value });
+                saveProducts();
+                renderReviews(product);
+                reviewText.value = '';
+            }
+        });
+
+        // --- CART ---
+        function updateCart() {
+            const itemsEl = document.getElementById('cart-items');
+            itemsEl.innerHTML = cart.length ? cart.map(item => `<div class="flex justify-between items-center mb-2"><p class="text-white">${item.name} (x${item.quantity})</p><span class="text-green-400">$${(item.price * item.quantity).toFixed(2)}</span></div>`).join('') : '<p class="text-gray-500">>> Your cart is empty...</p>';
+            document.getElementById('cart-count').textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cart-total').textContent = '$' + cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
+        }
+        document.getElementById('modal-add-to-cart-btn').addEventListener('click', (e) => {
+            const productId = e.target.dataset.productId;
+            const product = products.find(p => p.id == productId);
+            if (!product || product.stock === 0) return;
+            const existingItem = cart.find(item => item.id == productId);
+            if (existingItem) {
+                if (existingItem.quantity < product.stock) existingItem.quantity++;
+                else alert('Not enough stock!');
+            } else {
+                cart.push({ ...product, quantity: 1 });
+            }
+            updateCart();
+        });
+        
+        // --- WISHLIST ---
+        function toggleWishlist(productId) {
+            if (!currentUser) { showAuthModal(); return; }
+            const wishlist = users[currentUser].wishlist;
+            const pId = parseInt(productId);
+            const index = wishlist.indexOf(pId);
+            if (index > -1) wishlist.splice(index, 1);
+            else wishlist.push(pId);
+            saveUsers();
+            handleFilterChange();
+        }
+        function renderWishlistModal() {
+            if (!currentUser) { showAuthModal(); return; }
+            const itemsEl = document.getElementById('wishlist-items');
+            const wishlist = users[currentUser].wishlist;
+            itemsEl.innerHTML = wishlist.length ? wishlist.map(id => {
+                const p = products.find(prod => prod.id === id);
+                return p ? `<div class="flex justify-between items-center mb-2"><p class="text-white">${p.name}</p><button class="view-details-btn text-green-400 hover:underline" data-product-id="${p.id}">View</button></div>` : '';
+            }).join('') : '<p class="text-gray-500">>> Your wishlist is empty...</p>';
+            document.getElementById('wishlist-modal').classList.remove('hidden');
+        }
+
+        // --- CHECKOUT & PAYMENT ---
+        function handleCheckout() {
+            if (cart.length === 0) { alert("Your cart is empty!"); return; }
+            const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
+            document.getElementById('payment-amount').textContent = '$' + total;
+            // Replace with your actual QR code generation logic/URL
+            document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=bitcoin:?amount=${total}`;
+            document.getElementById('cart-modal').classList.add('hidden');
+            document.getElementById('payment-modal').classList.remove('hidden');
+        }
+        document.getElementById('close-payment-btn').addEventListener('click', () => {
+            // Simulate successful payment
+            cart.forEach(cartItem => {
+                const product = products.find(p => p.id === cartItem.id);
+                if (product) product.stock -= cartItem.quantity;
+            });
+            saveProducts();
+            cart = [];
+            updateCart();
+            handleFilterChange();
+            document.getElementById('payment-modal').classList.add('hidden');
+        });
+        
+        // --- ADMIN PANEL ---
+        function handleProductFormSubmit(e) {
+            e.preventDefault();
+            const form = e.target;
+            const id = parseInt(form['product-id'].value);
+            const productData = {
+                name: form['product-name'].value,
+                price: parseFloat(form['product-price'].value),
+                img: form['product-img'].value,
+                stock: parseInt(form['product-stock'].value),
+                category: form['product-category'].value,
+                desc: form['product-desc'].value,
+            };
+            if (id) {
+                const index = products.findIndex(p => p.id === id);
+                products[index] = { ...products[index], ...productData };
+            } else {
+                products.push({ id: Date.now(), ...productData, reviews: [] });
+            }
+            saveProducts();
+            form.reset();
+            renderProducts(products);
+            renderAdminProductList();
+        }
+        function renderAdminProductList() {
+            const listEl = document.getElementById('admin-product-list');
+            listEl.innerHTML = `<h3 class="font-orbitron text-2xl text-white mb-4">Manage Products</h3>` + products.map(p => `
+                <div class="flex justify-between items-center bg-black p-2 mb-2 border border-red-500/20">
+                    <p class="text-white">${p.name}</p>
+                    <div>
+                        <button class="edit-product-btn text-yellow-400 mr-2" data-product-id="${p.id}">Edit</button>
+                        <button class="delete-product-btn text-red-500" data-product-id="${p.id}">Delete</button>
+                    </div>
+                </div>`).join('');
+        }
+        document.getElementById('admin-product-list').addEventListener('click', e => {
+            const id = e.target.dataset.productId;
+            if (e.target.classList.contains('edit-product-btn')) {
+                const p = products.find(prod => prod.id == id);
+                const form = document.getElementById('product-form');
+                form['product-id'].value = p.id;
+                form['product-name'].value = p.name;
+                form['product-price'].value = p.price;
+                form['product-img'].value = p.img;
+                form['product-stock'].value = p.stock;
+                form['product-category'].value = p.category;
+                form['product-desc'].value = p.desc;
+            }
+            if (e.target.classList.contains('delete-product-btn')) {
+                if (confirm('Are you sure you want to delete this product?')) {
+                    products = products.filter(p => p.id != id);
+                    saveProducts();
+                    renderProducts(products);
+                    renderAdminProductList();
+                }
+            }
+        });
+    });
+    </script>
+</body>
+</html>
